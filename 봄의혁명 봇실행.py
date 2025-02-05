@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import timedelta
+import os
 
 # Intents 설정
 intents = discord.Intents.default()
@@ -70,8 +71,9 @@ async def on_message(message):
             await report_channel.send(f"처벌 대상자: {message.author.mention}\n욕설: `{bad_word}`\n처벌: {penalty['message']}")
             break
 
+accses_token = os.environ["BOT_TOKEN"]
     # 다른 명령어 처리
     await bot.process_commands(message)
 
 # 봇 토큰으로 로그인
-bot.run('TOKEN')
+bot.run('accses_token')
