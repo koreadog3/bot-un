@@ -33,8 +33,6 @@ report_channel_id = 1336609729409187912
 restricted_guilds = {
     783235160921341962: "장애당",
     1256967198350643332: "정화당"
-
- # 추방할 서버의 ID와 이름으로 변경하세요.
 }
 
 @bot.event
@@ -55,7 +53,8 @@ async def on_message(message):
 
             # 추방 기록 보고
             report_channel = bot.get_channel(report_channel_id)
-            await report_channel.send(f"처벌 대상자: {message.author.mention}\n처벌: 자동 차단 (`{guild_name}` 유저 판정)")
+            if report_channel:
+                await report_channel.send(f"처벌 대상자: {message.author.mention}\n처벌: 자동 차단 (`{guild_name}` 유저 판정)")
 
             return  # 메시지 처리 중단
 
@@ -67,13 +66,20 @@ async def on_message(message):
             
             # 처벌 보고
             report_channel = bot.get_channel(report_channel_id)
-            bad_word = next(word for word in penalty['words'] if word in message.content)
-            await report_channel.send(f"처벌 대상자: {message.author.mention}\n욕설: `{bad_word}`\n처벌: {penalty['message']}")
+            if report_channel:
+                bad_word = next(word for word in penalty['words'] if word in message.content)
+                await report_channel.send(f"처벌 대상자: {message.author.mention}\n욕설: `{bad_word}`\n처벌: {penalty['message']}")
             break
 
-accses_token = os.environ["BOT_TOKEN"]
     # 다른 명령어 처리
     await bot.process_commands(message)
 
-# 봇 토큰으로 로그인
-bot.run('accses_token')
+# 환경 변수에서 봇 토큰 가져오기
+TOKEN = os.getenv("BOT_TOKEN")
+
+# 봇 실행
+if TOKEN:
+    bot.run(TOKEN)
+else:
+    print("❌ BOT_TOKEN이 설정되지 않았습니다. 환경 변수를 확인하세요!")
+
