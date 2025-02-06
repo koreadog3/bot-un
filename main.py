@@ -13,7 +13,7 @@ app.secret_key = os.urandom(24)
 OAUTH2_CLIENT_ID = "YOUR_CLIENT_ID"
 OAUTH2_CLIENT_SECRET = "YOUR_CLIENT_SECRET"
 OAUTH2_REDIRECT_URI = "YOUR_REDIRECT_URI"
-OAUTH2_URL = f"https://discord.com/oauth2/authorize?client_id={OAUTH2_CLIENT_ID}&scope=identify+guilds&response_type=code&redirect_uri={OAUTH2_REDIRECT_URI}"
+OAUTH2_URL = f"https://discord.com/oauth2/authorize?client_id="1297501772339871755"&scope=identify+guilds&response_type=code&redirect_uri=f"https://bot-un.koyeb.app/oauth2/callback"
 
 # 인증 후 받은 'code'를 이용하여 액세스 토큰을 요청하는 함수
 def get_access_token(code):
