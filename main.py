@@ -97,8 +97,8 @@ restricted_guilds = {
 }
 
 # 인증 버튼을 제공할 채널 ID 및 역할 ID
-verification_channel_id = 1336609729409187913  # 인증 채널 ID
-verified_role_id = 123456789012345678  # 인증 후 부여할 역할 ID
+verification_channel_id = 1337059669021167748  # 인증 채널 ID
+verified_role_id = 1334407922628952076  # 인증 후 부여할 역할 ID
 
 OAUTH2_URL = "https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=identify+guilds&response_type=code&redirect_uri=https://bot-un.koyeb.app/oauth2/callback
 "
