@@ -10,16 +10,16 @@ import requests
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-OAUTH2_CLIENT_ID = "YOUR_CLIENT_ID"
-OAUTH2_CLIENT_SECRET = "YOUR_CLIENT_SECRET"
-OAUTH2_REDIRECT_URI = "YOUR_REDIRECT_URI"
-OAUTH2_URL = f"https://discord.com/oauth2/authorize?client_id="1297501772339871755"&scope=identify+guilds&response_type=code&redirect_uri=f"https://bot-un.koyeb.app/oauth2/callback"
+OAUTH2_CLIENT_ID = "1297501772339871755"
+OAUTH2_CLIENT_SECRET = os.getenv("OAUTH2_CLIENT_SECRET")  # 환경 변수에서 클라이언트 비밀키 가져오기
+OAUTH2_REDIRECT_URI = "https://bot-un.koyeb.app/oauth2/callback"
+OAUTH2_URL = f"https://discord.com/oauth2/authorize?client_id=1297501772339871755&scope=identify+guilds&response_type=code&redirect_uri=https://bot-un.koyeb.app/oauth2/callback"
 
 # 인증 후 받은 'code'를 이용하여 액세스 토큰을 요청하는 함수
 def get_access_token(code):
     data = {
         'client_id': OAUTH2_CLIENT_ID,
-        'client_secret': OAUTH2_CLIENT_SECRET,
+        'client_secret': OAUTH2_CLIENT_SECRET,  # 클라이언트 비밀키 사용
         'grant_type': 'authorization_code',
         'code': code,
         'redirect_uri': OAUTH2_REDIRECT_URI
@@ -100,7 +100,8 @@ restricted_guilds = {
 verification_channel_id = 1336609729409187913  # 인증 채널 ID
 verified_role_id = 123456789012345678  # 인증 후 부여할 역할 ID
 
-OAUTH2_URL = "https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=identify+guilds&response_type=code&redirect_uri=YOUR_REDIRECT_URI"
+OAUTH2_URL = "https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=identify+guilds&response_type=code&redirect_uri=https://bot-un.koyeb.app/oauth2/callback
+"
 
 class VerificationButton(discord.ui.View):
     def __init__(self):
@@ -169,6 +170,4 @@ if __name__ == '__main__':
     flask_thread.start()
 
     bot.run(TOKEN)
-
-
 
