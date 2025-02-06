@@ -37,41 +37,47 @@ restricted_guilds = {
 
 @bot.event
 async def on_ready():
-    print(f'{bot.user}로 로그인했습니다.')
+    print(f'✅ {bot.user}로 로그인했습니다.')
 
 @bot.event
 async def on_message(message):
-    # 봇이 보낸 메시지는 무시
     if message.author == bot.user:
+        return
+
+    # 메시지를 보낸 사용자의 서버 목록 확인 (Member 객체로 변환)
+    member = message.guild.get_member(message.author.id)
+    if not member:
         return
 
     # 특정 서버에서 추방 처리
     for guild_id, guild_name in restricted_guilds.items():
-        if guild_id in [guild.id for guild in message.author.guilds]:
-            await message.guild.kick(message.author)
-            await message.channel.send(f"{message.author.mention}님은 `{guild_name}` 유저로 판단, 자동 차단되셨습니다. 만약 해당 처벌에 이의가 있으실 경우 부계정을 통하여 본 서버에 가입 후, 서버장 DM을 통해 연락 바랍니다.")
+        if guild_id in [g.id for g in bot.guilds]:  # 봇이 있는 서버와 비교
+            await message.guild.kick(member, reason=f"{guild_name} 유저로 판정됨")
+            await message.channel.send(f"{message.author.mention}님은 `{guild_name}` 유저로 판단되어 자동 차단되었습니다.")
 
             # 추방 기록 보고
             report_channel = bot.get_channel(report_channel_id)
             if report_channel:
-                await report_channel.send(f"처벌 대상자: {message.author.mention}\n처벌: 자동 차단 (`{guild_name}` 유저 판정)")
+                await report_channel.send(f"⚠ 처벌 대상자: {message.author.mention}\n처벌: 자동 차단 (`{guild_name}` 유저 판정)")
 
             return  # 메시지 처리 중단
 
     # 욕설 체크 및 처벌 적용
     for penalty_level, penalty in penalties.items():
         if any(word in message.content for word in penalty['words']):
-            await message.author.timeout(timedelta(seconds=penalty['duration']), reason=penalty['message'])
-            await message.channel.send(f"{message.author.mention}님, {penalty['message']} {penalty['duration'] // 60}분 동안 타임아웃됩니다.")
+            until_time = discord.utils.utcnow() + timedelta(seconds=penalty['duration'])  # UTC 기준 타임아웃 시간 계산
+            await message.author.timeout(until=until_time, reason=penalty['message'])
+            await message.channel.send(f"⚠ {message.author.mention}, {penalty['message']} {penalty['duration'] // 60}분 동안 타임아웃됩니다.")
             
             # 처벌 보고
             report_channel = bot.get_channel(report_channel_id)
             if report_channel:
                 bad_word = next(word for word in penalty['words'] if word in message.content)
-                await report_channel.send(f"처벌 대상자: {message.author.mention}\n욕설: `{bad_word}`\n처벌: {penalty['message']}")
-            break
+                await report_channel.send(f"🚨 처벌 대상자: {message.author.mention}\n욕설: `{bad_word}`\n처벌: {penalty['message']}")
 
-    # 다른 명령어 처리
+            break  # 첫 번째로 감지된 욕설에 대해서만 처리
+
+    # 명령어 처리 (여기까지 오면 bot.process_commands 실행됨)
     await bot.process_commands(message)
 
 # 환경 변수에서 봇 토큰 가져오기
@@ -82,4 +88,5 @@ if TOKEN:
     bot.run(TOKEN)
 else:
     print("❌ BOT_TOKEN이 설정되지 않았습니다. 환경 변수를 확인하세요!")
+
 
