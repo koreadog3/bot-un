@@ -2,15 +2,75 @@ import discord
 from discord.ext import commands
 from datetime import timedelta
 import os
+import threading
+from flask import Flask, redirect, request
+import requests
 
-# Intents 설정
+# Flask 서버 설정
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+OAUTH2_CLIENT_ID = "YOUR_CLIENT_ID"
+OAUTH2_CLIENT_SECRET = "YOUR_CLIENT_SECRET"
+OAUTH2_REDIRECT_URI = "YOUR_REDIRECT_URI"
+OAUTH2_URL = f"https://discord.com/oauth2/authorize?client_id={OAUTH2_CLIENT_ID}&scope=identify+guilds&response_type=code&redirect_uri={OAUTH2_REDIRECT_URI}"
+
+# 인증 후 받은 'code'를 이용하여 액세스 토큰을 요청하는 함수
+def get_access_token(code):
+    data = {
+        'client_id': OAUTH2_CLIENT_ID,
+        'client_secret': OAUTH2_CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': OAUTH2_REDIRECT_URI
+    }
+    response = requests.post("https://discord.com/api/oauth2/token", data=data)
+    return response.json().get('access_token')
+
+@app.route('/')
+def home():
+    return "OAuth2 인증 서버"
+
+# OAuth2 콜백 처리
+@app.route('/callback')
+def callback():
+    code = request.args.get('code')
+    if not code:
+        return "인증 실패, 코드가 제공되지 않았습니다.", 400
+    
+    access_token = get_access_token(code)
+    if access_token:
+        # 액세스 토큰을 이용해 Discord API를 통해 유저 정보를 가져옴
+        user_info = requests.get(
+            "https://discord.com/api/v10/users/@me", 
+            headers={"Authorization": f"Bearer {access_token}"}
+        ).json()
+        
+        username = user_info['username']
+        user_id = user_info['id']
+        
+        # 봇에서 해당 유저에게 역할을 부여하는 로직 추가
+        guild = bot.get_guild(YOUR_GUILD_ID)
+        member = guild.get_member(int(user_id))
+        if member:
+            verified_role = guild.get_role(verified_role_id)
+            if verified_role not in member.roles:
+                await member.add_roles(verified_role)
+                return f"✅ {username}님, 인증이 완료되어 역할이 부여되었습니다!", 200
+        return f"회원 {username}을 찾을 수 없습니다.", 404
+    return "인증 실패", 400
+
+# Flask 서버를 별도의 스레드에서 실행하는 함수
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# Discord 봇 설정
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
 intents.guilds = True
 intents.members = True  # 멤버 정보 접근을 위해 추가
 
-# 봇의 접두사 설정
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # 욕설 리스트와 그에 따른 처벌 및 메시지
@@ -104,9 +164,11 @@ async def on_message(message):
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-if TOKEN:
+if __name__ == '__main__':
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
+
     bot.run(TOKEN)
-else:
-    print("❌ BOT_TOKEN이 설정되지 않았습니다. 환경 변수를 확인하세요!")
+
 
 
