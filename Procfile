@@ -1,3 +1,3 @@
-worker: python bot-un/main.py
+worker: python bot-un/main.py & python server.py
 
 
